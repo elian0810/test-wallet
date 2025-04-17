@@ -20,3 +20,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 //----------------------------- CLIENTES -----------------------------//
 include_once 'apis/customers.routes.php';
+
+//----------------------------- LÍNEAS DE CRÉDITOS -----------------------------//
+include_once 'apis/credit_lines.routes.php';

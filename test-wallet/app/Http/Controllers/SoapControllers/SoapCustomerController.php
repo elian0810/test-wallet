@@ -61,4 +61,50 @@ class SoapCustomerController
     }
 
 
+    /**
+     * Servicio SOAP que lista los clientes usando el controlador REST.
+     *
+     * Este método procesa la solicitud SOAP para obtener una lista de clientes,
+     * llama al método REST `index` y convierte su respuesta JSON en XML.
+     *
+     * @param Request $request La solicitud SOAP con parámetros opcionales (search, paginate, per_page).
+     * @return \Illuminate\Http\Response Respuesta XML con el listado de clientes.
+     *
+     * @throws \Exception Si ocurre un error durante el proceso.
+     */
+    public function soapIndexCustomer(Request $request)
+    {
+        try {
+            // Extraer parámetros desde el XML si es necesario, o desde query string
+            $search    = $request->input('search');
+            $per_page  = $request->input('per_page', 10);
+            $paginate  = $request->input('paginate', 'false');
+
+            // Crear un nuevo request con esos parámetros
+            $fake_request = new Request([
+                'search'   => $search,
+                'per_page' => $per_page,
+                'paginate' => $paginate,
+            ]);
+
+            // Llamar al método index del CustomerController
+            $controller = App::make(CustomerController::class);
+            $json_response = $controller->index($fake_request);
+
+            // Decodificar la respuesta JSON a array
+            $response_array = json_decode($json_response->getContent(), true);
+
+            // Convertir booleano de success a 1/0
+            $response_array['success'] = $response_array['success'] ? 1 : 0;
+
+            // Convertir array a XML
+            $xml_response = FormatResponse::arrayToXml($response_array, new \SimpleXMLElement('<response/>'));
+
+            return response($xml_response->asXML(), 200)->header('Content-Type', 'application/xml');
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+
 }

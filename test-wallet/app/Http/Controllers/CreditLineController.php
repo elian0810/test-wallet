@@ -36,8 +36,10 @@ class CreditLineController extends Controller
     public function index(Request $request)
     {
         try {
-            $search    = $request->get('search');
+            $search    = $request->get('search')?? null;
             $per_page  = $request->get('per_page', 10);
+            $document    = $request->get('document')?? null;
+            $phone    = $request->get('phone')?? null;
             $paginate  = $request->get('paginate') === 'true';
     
             // Consulta base con JOIN a customers
@@ -65,7 +67,12 @@ class CreditLineController extends Controller
                       ->orWhere('customers.phone', 'LIKE', $search_like);
                 });
             }
-    
+            if ($document && $phone) {
+                $credit_lines = $credit_lines
+                    ->where('customers.phone', $phone)
+                    ->where('customers.document', $document);
+            }
+            
             // Ordenar por fecha de creación
             $credit_lines->orderBy('credit_lines.created_at', 'DESC');
     

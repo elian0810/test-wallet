@@ -289,6 +289,7 @@ class CreditLineController extends Controller
             $rules = [
                 'session_id' => 'required|string',
                 'token'      => 'required|numeric',
+                'email'      => 'required|email|max:255',
             ];
             
             $messages = [
@@ -296,6 +297,9 @@ class CreditLineController extends Controller
                 'session_id.string'  => 'El ID de sesió debe ser un un texto.',
                 'token.required'      => 'El token es obligatorio.',
                 'token.numeric'  => 'El token debe ser un número.',
+                'email.required' => 'El correo electrónico a notificar es requerido.',
+                'email.email'    => 'El correo electrónico no tiene un formato válido.',
+                'email.max'      => 'El correo electrónico no debe exceder los 255 caracteres.',
             ];
             $validator = \Validator::make($request->all(), $rules, $messages);
             if ($validator->fails()) {

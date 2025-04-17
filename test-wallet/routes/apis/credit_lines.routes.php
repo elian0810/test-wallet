@@ -9,4 +9,5 @@ Route::group(['prefix' => 'credit-lines'], function () {
     Route::post('/open', [CreditLineController::class, 'openCreditLine']);
     Route::post('/send-balane', [CreditLineController::class, 'sendBalane']);
     Route::post('/generate-token-total-debt', [CreditLineController::class, 'generateTokenTotalDebt']);
+    Route::post('/debt-credit-line', [CreditLineController::class, 'debtCreditLine']);
 });

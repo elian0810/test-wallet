@@ -226,6 +226,8 @@ class CreditLineController extends Controller
             if ($request->total_debt > $credit_line->balance) {
                 Util::throwCustomException("El monto a pagar no puede ser mayor al saldo disponible en su Línea de crédito");
             }
+            $credit_line->total_debt+= $request->total_debt; 
+            $credit_line->save();
             DB::beginTransaction();
 
             // Generar token de 6 dígitos
@@ -254,12 +256,66 @@ class CreditLineController extends Controller
             DB::commit();
             return FormatResponse::successful("Se ha enviado un código de confirmación al correo.", [
                 'session_id' => $session_id,
+                'token'=>$token
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return FormatResponse::failed($e);
         }
     }
+    
+    /**
+     * Realiza el pago de una deuda en la línea de crédito asociada a un token y sesión.
+     *
+     * Este método valida el token y la sesión recibidos, verifica que la deuda no sea mayor
+     * al saldo disponible, y en caso de ser válido, descuenta la deuda del saldo, la suma al
+     * total de consumo, y reinicia el valor de la deuda a 0.
+     *
+     * @param Request $request Contiene 'session_id' y 'token' para validar la operación.
+     * @return \Illuminate\Http\JsonResponse Respuesta formateada indicando éxito o error.
+    */
+    public function debtCreditLine(Request $request)
+    {
+        try {
+            $rules = [
+                'session_id' => 'required|string',
+                'token'      => 'required|numeric',
+            ];
+            
+            $messages = [
+                'session_id.required' => 'El ID de sesión es obligatorio.',
+                'session_id.string'  => 'El ID de sesió debe ser un un texto.',
+                'token.required'      => 'El token es obligatorio.',
+                'token.numeric'  => 'El token debe ser un número.',
+            ];
+            $validator = \Validator::make($request->all(), $rules, $messages);
+            if ($validator->fails()) {
+                Util::throwCustomException($validator->errors()->first());
+            }
+    
+            // Verificar si la Token existe con los datos proporcionados
+            $token_model = Token::checkToken($request->session_id, $request->token);
+            DB::beginTransaction();
+            
+            if ($token_model) {
+                $credit_line = CreditLine::where('id',$token_model->credit_line_id)->first();
+                if ($credit_line->total_debt > $credit_line->balance) {
+                    Util::throwCustomException("El monto a pagar no puede ser mayor al saldo disponible en su Línea de crédito");
+                }else{
+                    $credit_line->balance -= $credit_line->total_debt;
+                    $credit_line->total_consumption += $credit_line->total_debt;
+                    $credit_line->total_debt = 0;
+                    $credit_line->save();
+                }
 
-
+            }
+            // Mail::to($request->email)->send(new GenericEmail($data, [], []));
+            // Crear un session_id único (puedes guardarlo si lo necesitas)
+            DB::commit();
+            return FormatResponse::successful("Pago realizado exitosamente");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return FormatResponse::failed($e);
+        }
+    }
 }

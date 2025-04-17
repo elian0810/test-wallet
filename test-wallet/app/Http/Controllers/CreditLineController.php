@@ -9,6 +9,7 @@ use App\Models\CreditLine;
 use App\Models\Token;
 use App\Utils\Util;
 use App\Mail\GenericEmail;
+use App\Mail\GenericEmailDebtCredit;
 use App\Rules\ValidAttribute;
 use App\Utils\FormatResponse;
 use Illuminate\Http\Request;
@@ -241,6 +242,7 @@ class CreditLineController extends Controller
             Token::create([
                 'credit_line_id' => $credit_line->id,
                 'token'          => $token,
+                'value'          => $request->total_debt,
                 'timeout_token'  =>  $timeout,
                 'uuid'=>$session_id
             ]);
@@ -297,19 +299,39 @@ class CreditLineController extends Controller
             $token_model = Token::checkToken($request->session_id, $request->token);
             DB::beginTransaction();
             
+            if ($token_model instanceof \Illuminate\Http\Response) {
+                $response_data = json_decode($token_model->getContent(), true);
+            
+                $data = [
+                    'subject' => 'Notificación de pago',
+                    'status'  => $response_data['success'],
+                    'message' => $response_data['messages'][0] ?? 'Error desconocido'
+                ];
+            
+                Mail::to($request->email)->send(new GenericEmailDebtCredit($data));
+            
+                return $token_model; // Retornas el error como está
+            }
+            
             if ($token_model) {
                 $credit_line = CreditLine::where('id',$token_model->credit_line_id)->first();
-                if ($credit_line->total_debt > $credit_line->balance) {
+                if ($token_model->value > $credit_line->balance) {
                     Util::throwCustomException("El monto a pagar no puede ser mayor al saldo disponible en su Línea de crédito");
                 }else{
                     $credit_line->balance -= $credit_line->total_debt;
                     $credit_line->total_consumption += $credit_line->total_debt;
-                    $credit_line->total_debt = 0;
+                    $credit_line->total_debt -=$token_model->value;
                     $credit_line->save();
                 }
 
-            }
-            // Mail::to($request->email)->send(new GenericEmail($data, [], []));
+            };
+            // Si todo fue bien, enviamos el correo exitoso
+            $data = [
+                'subject' => 'Notificación de pago',
+                'status'  => true,
+                'message' => 'El pago se procesó correctamente.'
+            ];
+            Mail::to($request->email)->send(new GenericEmailDebtCredit($data, [], []));
             // Crear un session_id único (puedes guardarlo si lo necesitas)
             DB::commit();
             return FormatResponse::successful("Pago realizado exitosamente");

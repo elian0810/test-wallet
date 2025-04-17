@@ -71,4 +71,22 @@ class FormatResponse
         );
     }
 
+    /**
+     * Funcion que permite responder de manera exitosa a una solicitud http
+     * @param $message , hace referencia a el mensaje personalizado con el cual se le respondera a el host cliente
+     * @param $data , hace referencia a el payload o data que se le proporcionara a el host cliente.
+     *@return \Illuminate\Http\JsonResponse
+     */
+    public static function error($message = "Proceso fallido", $data = [])
+    {
+        return response(
+            [
+                'success' => false,
+                'messages' => [$message],
+                'data' => $data
+            ],
+            HttpResponse::HTTP_INTERNAL_SERVER_ERROR
+        );
+    }
+
 }

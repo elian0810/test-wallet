@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Utils\Util; 
+use App\Utils\FormatResponse;
 
 class Token extends Model
 {
@@ -13,6 +14,7 @@ class Token extends Model
     protected $fillable = [
         'token',
         'uuid', 
+        'value',
         'timeout_token',
         'credit_line_id'
     ];
@@ -35,11 +37,11 @@ class Token extends Model
             ->first();
         
             if (!$token_model) {
-                Util::throwCustomException("El token o el ID de sesión no son válidos o no coinciden.");
+                return FormatResponse::error("El token o el ID de sesión no son válidos o no coinciden.", []); // HTTP 400 Bad Request
             }
         
             if ($token_model->timeout_token < now()) {
-                Util::throwCustomException("El token ha expirado.");
+                return FormatResponse::error("El token ha expirado.", []); // HTTP 400 Bad Request
             }
             return $token_model;
         } catch (\Exception $e) {

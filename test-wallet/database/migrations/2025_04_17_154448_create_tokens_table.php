@@ -17,6 +17,7 @@ class CreateTokensTable extends Migration
             $table->id();
             $table->unsignedBigInteger('credit_line_id')->nullable()->comment('ID de la línea de crédito');
             $table->string('token')->nullable()->comment('Hace referencia al token.');  
+            $table->double('value', 20, 3)->default(0)->comment('Especifica el valor a pagar.');
             $table->string('timeout_token')->nullable()->comment('Hace referencia al token de tiempo de espera.');  
             $table->string('uuid')->nullable()->comment('Hace referencia al uuid del token.');  
             $table->timestamps();

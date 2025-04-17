@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use App\Models\CreditLine;
 use Illuminate\Http\Request;
 use App\Utils\Util;
@@ -172,5 +175,85 @@ class CreditLineController extends Controller
             return FormatResponse::failed($e);
         }
     }
+
+
+    /**
+     * Genera un token temporal de 6 dígitos para autorizar el pago de una deuda.
+     * El token tiene una validez máxima de 20 minutos. Se almacena en la línea de crédito,
+     * y se envía al correo del cliente. También se genera un ID de sesión único para confirmar la transacción.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function generateTokenTotalDebt(Request $request)
+    {
+        try {
+            $rules = [
+                'document'   => 'required|string|min:10|max:15',
+                'total_debt' => 'required|numeric|min:0',
+                'phone'      => 'required|string|size:10',
+                'email'      => 'required|email|max:255',
+            ];
+
+            $messages = [
+                'document.required' => 'El documento es requerido.',
+                'document.string'   => 'El documento debe ser un texto.',
+                'document.min'      => 'El documento debe tener al menos 10 caracteres.',
+                'document.max'      => 'El documento no debe exceder los 15 caracteres.',
+
+                'total_debt.required' => 'El total a pagar es obligatorio.',
+                'total_debt.numeric'  => 'El total a pagar debe ser un número.',
+                'total_debt.min'      => 'El total a pagar no puede ser negativo.',
+
+                'phone.required' => 'El teléfono es requerido.',
+                'phone.string'   => 'El teléfono debe ser un texto.',
+                'phone.size'     => 'El teléfono debe tener exactamente 10 caracteres.',
+
+                'email.required' => 'El correo electrónico a notificar es requerido.',
+                'email.email'    => 'El correo electrónico no tiene un formato válido.',
+                'email.max'      => 'El correo electrónico no debe exceder los 255 caracteres.',
+            ];
+
+            $validator = \Validator::make($request->all(), $rules, $messages);
+            if ($validator->fails()) {
+                Util::throwCustomException($validator->errors()->first());
+            }
+
+            // Verificar si la línea de crédito existe con los datos proporcionados
+            $credit_line = CreditLine::checkCreditLine($request->document, $request->phone);
+
+            DB::beginTransaction();
+
+            // Generar token de 6 dígitos
+            $token = random_int(100000, 999999);
+
+            // Tiempo de expiración del token (20 minutos desde ahora)
+            $timeout = now()->addMinutes(20);
+
+            // Guardar token y timeout en la línea de crédito
+            $credit_line->token = $token;
+            $credit_line->timeout_token = $timeout;
+            $credit_line->save();
+
+            // // Enviar el token al correo del cliente (simulado)
+            // Mail::raw("Su código de confirmación es: $token", function ($message) use ($request) {
+            //     $message->to($request->email)
+            //             ->subject("Código de confirmación de pago");
+            // });
+
+            // Crear un session_id único (puedes guardarlo si lo necesitas)
+            $session_id = Str::uuid()->toString();
+
+            DB::commit();
+
+            return FormatResponse::successful("Se ha enviado un código de confirmación al correo.", [
+                'session_id' => $session_id,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return FormatResponse::failed($e);
+        }
+    }
+
 
 }

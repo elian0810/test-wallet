@@ -14,6 +14,8 @@ class CreditLine extends Model
         'customer_id',
         'balance',
         'total_debt',
+        'token',
+        'timeout_token',
         'total_consumption',
     ];
 

@@ -12,7 +12,16 @@ class SoapCustomerController
 {
     /**
      * Servicio SOAP que crea un cliente llamando al controlador REST.
-     */
+     * Este método recibe una solicitud SOAP que contiene los datos del cliente en formato XML,
+     * los procesa y luego llama al controlador REST para registrar al cliente. La respuesta se
+     * convierte en formato XML y se devuelve como respuesta SOAP.
+     *
+     * @param Request $request La solicitud entrante que contiene los datos del cliente en formato XML.
+     *
+     * @return \Illuminate\Http\Response Respuesta en formato XML que contiene el resultado de la creación del cliente.
+     * 
+     * @throws \Exception Lanza una excepción en caso de error durante el proceso de creación del cliente.
+    */
     public function soapCustomer(Request $request)
     {
         try {

@@ -76,10 +76,10 @@ class SoapCustomerController
     {
         try {
             // Extraer parámetros desde el XML si es necesario, o desde query string
-            $search    = $request->input('search');
-            $per_page  = $request->input('per_page', 10);
-            $paginate  = $request->input('paginate', 'false');
-
+            $search    = $request->get('search') ?? null;
+            $per_page  = $request->get('per_page', 10);
+            $paginate  = $request->get('paginate') === 'true';
+            
             // Crear un nuevo request con esos parámetros
             $fake_request = new Request([
                 'search'   => $search,

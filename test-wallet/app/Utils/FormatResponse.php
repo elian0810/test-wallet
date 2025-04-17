@@ -4,6 +4,7 @@ namespace App\Utils;
 
 use Exception;
 use Illuminate\Http\Response as HttpResponse;
+use SimpleXMLElement;
 
 class FormatResponse
 {
@@ -88,5 +89,31 @@ class FormatResponse
             HttpResponse::HTTP_INTERNAL_SERVER_ERROR
         );
     }
+
+    /**
+     * Función que convierte un array en un objeto SimpleXMLElement (XML).
+     * @param array $data El array que se desea convertir a XML.
+     * @param SimpleXMLElement $xml El objeto SimpleXMLElement que será utilizado para construir el XML.
+     * @return SimpleXMLElement El objeto SimpleXMLElement que contiene la representación XML del array.
+     * @throws \Exception Lanza una excepción en caso de error durante el proceso de conversión.
+     */
+    public static function arrayToXml($data, SimpleXMLElement $xml)
+    {
+        try {
+            foreach ($data as $key => $value) {
+                if (is_array($value)) {
+                    // Si es un array, llamamos recursivamente
+                    self::arrayToXml($value, $xml->addChild($key));
+                } else {
+                    // Convertimos el valor a texto
+                    $xml->addChild($key, htmlspecialchars($value));
+                }
+            }
+            return $xml;
+        } catch (\Exception $e) {
+            throw $e; 
+        }
+    }
+
 
 }

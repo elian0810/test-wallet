@@ -23,3 +23,7 @@ include_once 'apis/customers.routes.php';
 
 //----------------------------- LÍNEAS DE CRÉDITOS -----------------------------//
 include_once 'apis/credit_lines.routes.php';
+
+
+//----------------------------- IMPORTAMOS LOS WEB SERVICES SOAP -----------------------------//
+include_once 'ws_soap/soap_customer.php';

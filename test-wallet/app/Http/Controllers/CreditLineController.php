@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use App\Models\CreditLine;
 use Illuminate\Http\Request;
 use App\Utils\Util;
+use App\Mail\GenericEmail;
 use App\Rules\ValidAttribute;
 use App\Utils\FormatResponse;
 use Illuminate\Support\Facades\DB;
@@ -228,24 +229,22 @@ class CreditLineController extends Controller
             $token = random_int(100000, 999999);
 
             // Tiempo de expiración del token (20 minutos desde ahora)
-            $timeout = now()->addMinutes(20);
+            $timeout = now()->addMinutes(5);
 
             // Guardar token y timeout en la línea de crédito
             $credit_line->token = $token;
             $credit_line->timeout_token = $timeout;
             $credit_line->save();
+            $data = [
+                'subject' => 'Confirmación de Pago',
+                'name'=> 'Jhon Doe',
+                'token'=> $token
+            ];
 
-            // // Enviar el token al correo del cliente (simulado)
-            // Mail::raw("Su código de confirmación es: $token", function ($message) use ($request) {
-            //     $message->to($request->email)
-            //             ->subject("Código de confirmación de pago");
-            // });
-
+            Mail::to($request->email)->send(new GenericEmail($data, [], []));
             // Crear un session_id único (puedes guardarlo si lo necesitas)
             $session_id = Str::uuid()->toString();
-
             DB::commit();
-
             return FormatResponse::successful("Se ha enviado un código de confirmación al correo.", [
                 'session_id' => $session_id,
             ]);

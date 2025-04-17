@@ -36,13 +36,12 @@ return [
     'mailers' => [
         'smtp' => [
             'transport' => 'smtp',
-            'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
-            'port' => env('MAIL_PORT', 587),
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
-            'username' => env('MAIL_USERNAME'),
-            'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
-            'auth_mode' => null,
+            'host'       => 'smtp.gmail.com',
+            'port'       => 587,
+            'encryption' => 'tls',
+            'username'   => 'testwalletelian@gmail.com',
+            'password' => "xdxh jngn iauy dlye",
+            'auth_mode' => "login",
         ],
 
         'ses' => [
@@ -59,7 +58,7 @@ return [
 
         'sendmail' => [
             'transport' => 'sendmail',
-            'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -t -i'),
+            'path' => '/usr/sbin/sendmail -bs',
         ],
 
         'log' => [
@@ -92,8 +91,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        'address' =>  'testwalletelian@gmail.com',
+        'name'    => 'Test Wallet',
     ],
 
     /*

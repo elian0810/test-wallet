@@ -19,8 +19,6 @@ class CreateCreditLinesTable extends Migration
             $table->double('balance', 20, 3)->comment('Saldo actual de la línea de crédito.');
             $table->double('total_debt', 20, 3)->default(0)->comment('Especifica el total de la deuda de la línea de crédito.');
             $table->double('total_consumption', 20, 3)->default(0)->comment('Especifica el consumo total que lleva una linea de credito en pesos.');
-            $table->string('token')->nullable()->comment('Hace referencia al token.');  
-            $table->string('timeout_token')->nullable()->comment('Hace referencia al token de tiempo de espera.');  
             $table->timestamps();
 
             $table->foreign('customer_id')->references('id')->on('customers')

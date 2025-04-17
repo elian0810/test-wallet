@@ -6,11 +6,12 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Models\CreditLine;
-use Illuminate\Http\Request;
+use App\Models\Token;
 use App\Utils\Util;
 use App\Mail\GenericEmail;
 use App\Rules\ValidAttribute;
 use App\Utils\FormatResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
@@ -222,7 +223,9 @@ class CreditLineController extends Controller
 
             // Verificar si la línea de crédito existe con los datos proporcionados
             $credit_line = CreditLine::checkCreditLine($request->document, $request->phone);
-
+            if ($request->total_debt > $credit_line->balance) {
+                Util::throwCustomException("El monto a pagar no puede ser mayor al saldo disponible en su Línea de crédito");
+            }
             DB::beginTransaction();
 
             // Generar token de 6 dígitos
@@ -231,10 +234,15 @@ class CreditLineController extends Controller
             // Tiempo de expiración del token (20 minutos desde ahora)
             $timeout = now()->addMinutes(5);
 
+            $session_id = Str::uuid()->toString();
             // Guardar token y timeout en la línea de crédito
-            $credit_line->token = $token;
-            $credit_line->timeout_token = $timeout;
-            $credit_line->save();
+            Token::create([
+                'credit_line_id' => $credit_line->id,
+                'token'          => $token,
+                'timeout_token'  =>  $timeout,
+                'uuid'=>$session_id
+            ]);
+            
             $data = [
                 'subject' => 'Confirmación de Pago',
                 'name'=> 'Jhon Doe',
@@ -243,7 +251,6 @@ class CreditLineController extends Controller
 
             Mail::to($request->email)->send(new GenericEmail($data, [], []));
             // Crear un session_id único (puedes guardarlo si lo necesitas)
-            $session_id = Str::uuid()->toString();
             DB::commit();
             return FormatResponse::successful("Se ha enviado un código de confirmación al correo.", [
                 'session_id' => $session_id,

@@ -43,6 +43,9 @@ class Token extends Model
             if ($token_model->timeout_token < now()) {
                 return FormatResponse::error("El token ha expirado.", []); // HTTP 400 Bad Request
             }
+            if ( $token_model->value == 0) {
+                return FormatResponse::error("El pago ya fue aplicado.", []); // HTTP 400 Bad Request
+            }
             return $token_model;
         } catch (\Exception $e) {
             throw $e; // Re-lanzamos para que el método que lo llama lo capture y maneje

@@ -328,6 +328,8 @@ class CreditLineController extends Controller
                     $credit_line->balance -= $credit_line->total_debt;
                     $credit_line->total_consumption += $credit_line->total_debt;
                     $credit_line->total_debt -=$token_model->value;
+                    $token_model->value = 0;
+                    $token_model->save();
                     $credit_line->save();
                 }
 

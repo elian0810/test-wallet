@@ -17,5 +17,10 @@ class Customer extends Model
         'created_at',
         'updated_at'
     ];
-
+    
+    public function creditLine()
+    {
+        return $this->hasOne(CreditLine::class);
+    }
+    
 }

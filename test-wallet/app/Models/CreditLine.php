@@ -64,13 +64,12 @@ class CreditLine extends Model
     public static function checkCreditLine( $document, $phone)
     {
         try {
-
             $credit_line = CreditLine::join('customers', 'customers.id', '=', 'credit_lines.customer_id')
                 ->where('customers.document', $document)
                 ->where('customers.phone', $phone)
                 ->select('credit_lines.*') // Aseguramos que se retornen los campos de credit_lines
                 ->first();
-        
+
             if (!$credit_line) {
                 Util::throwCustomException("No existe una línea de crédito con esos parámetros.");
             }

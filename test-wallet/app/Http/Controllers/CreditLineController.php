@@ -53,11 +53,9 @@ class CreditLineController extends Controller
                     'customers.document',
                     'customers.name',
                     'customers.email',
-                    'customers.phone',
-                    'tokens.uuid',
+                    'customers.phone'
                 )
-                ->join('customers', 'customers.id', '=', 'credit_lines.customer_id')
-                ->Leftjoin('tokens', 'tokens.credit_line_id', '=', 'credit_lines.id');
+                ->join('customers', 'customers.id', '=', 'credit_lines.customer_id');
     
             // Filtro de búsqueda
             if ($search) {
@@ -264,7 +262,7 @@ class CreditLineController extends Controller
             Mail::to($request->email)->send(new GenericEmail($data, [], []));
             // Crear un session_id único (puedes guardarlo si lo necesitas)
             DB::commit();
-            return FormatResponse::successful("Se ha enviado un código de confirmación al correo.", [
+            return FormatResponse::successful("Se ha enviado un código de confirmación al correo copie el id de la sesion para confirmar el pago: ", [
                 'session_id' => $session_id,
                 'token'=>$token
             ]);
@@ -332,7 +330,7 @@ class CreditLineController extends Controller
                 }else{
                     $credit_line->balance -= $credit_line->total_debt;
                     $credit_line->total_consumption += $credit_line->total_debt;
-                    $credit_line->total_debt -=$token_model->value;
+                    $credit_line->total_debt -= $token_model->value;
                     $token_model->value = 0;
                     $token_model->save();
                     $credit_line->save();

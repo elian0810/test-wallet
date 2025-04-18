@@ -53,9 +53,11 @@ class CreditLineController extends Controller
                     'customers.document',
                     'customers.name',
                     'customers.email',
-                    'customers.phone'
+                    'customers.phone',
+                    'tokens.uuid',
                 )
-                ->join('customers', 'customers.id', '=', 'credit_lines.customer_id');
+                ->join('customers', 'customers.id', '=', 'credit_lines.customer_id')
+                ->Leftjoin('tokens', 'tokens.credit_line_id', '=', 'credit_lines.id');
     
             // Filtro de búsqueda
             if ($search) {

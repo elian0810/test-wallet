@@ -243,7 +243,6 @@ class CreditLineController extends Controller
 
             // Tiempo de expiración del token (20 minutos desde ahora)
             $timeout = now()->addMinutes(5);
-
             $session_id = Str::uuid()->toString();
             // Guardar token y timeout en la línea de crédito
             Token::create([
@@ -251,7 +250,7 @@ class CreditLineController extends Controller
                 'token'          => $token,
                 'value'          => $request->total_debt,
                 'timeout_token'  =>  $timeout,
-                'uuid'=>$session_id
+                'uuid'=> $session_id
             ]);
             
             $data = [

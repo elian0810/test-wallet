@@ -22,7 +22,7 @@ class CreateTokensTable extends Migration
             $table->string('uuid')->nullable()->comment('Hace referencia al uuid del token.');  
             $table->timestamps();
 
-            $table->foreign('credit_line_id')->references('id')->on('customers')
+            $table->foreign('credit_line_id')->references('id')->on('credit_lines')
             ->onUpdate('cascade')
             ->onDelete('cascade');
 
